@@ -49,10 +49,15 @@ let blocks = [];
 for (let row = 0; row < levelMap.length; row++) {
   for (let col = 0; col < levelMap[row].length; col++) {
     if (levelMap[row][col] === "#") {
-      blocks.push({ x: col * BLOCK_SIZE, y: row * BLOCK_SIZE });
+      blocks.push({
+        x: col * BLOCK_SIZE,
+        y: row * BLOCK_SIZE,
+        size: BLOCK_SIZE
+      });
     }
   }
 }
+
 
 // Player spawn point
 const spawnPoint = { x: 64, y: 200 };

@@ -1,130 +1,71 @@
-// === Player Module ===
+update(blocks, canvas) {
+  if (!this.dashing) this.vy += 0.5; // gravity
 
-// Sprite sheets
-const sprites = {
-  idle: { src: "images/HTMLPlayer.png", frames: 4, w: 2, h: 2 },
-  jump: { src: "images/HTMLPlayerJump.png", frames: 2, w: 1, h: 2 },
-  attack: { src: "images/HTMLPlayerAtk.png", frames: 4, w: 2, h: 2 },
-  dash: { src: "images/HTMLPlayerDash.png", frames: 4, w: 2, h: 2 }
-};
+  // Controls
+  if (!this.dashing) {
+    if (keys["ArrowLeft"]) { this.vx = -3; if (!this.lockFacing) this.facing = -1; }
+    else if (keys["ArrowRight"]) { this.vx = 3; if (!this.lockFacing) this.facing = 1; }
+    else this.vx = 0;
 
-// Load sprite images
-for (let key in sprites) {
-  const img = new Image();
-  img.src = sprites[key].src;
-  sprites[key].img = img;
-}
-
-// Input
-const keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-class Player {
-  constructor(spawnX, spawnY) {
-    this.x = spawnX;
-    this.y = spawnY;
-    this.vx = 0;
-    this.vy = 0;
-    this.width = 64;   // keep at your sprite’s natural size
-    this.height = 64;
-    this.onGround = false;
-    this.facing = 1;
-    this.state = "idle";
-    this.frame = 0;
-    this.frameTimer = 0;
-    this.canDash = true;
-    this.dashing = false;
-    this.dashTime = 0;
-    this.lockFacing = false;
-  }
-
-  update(blocks, canvas) {
-    if (!this.dashing) this.vy += 0.5; // gravity
-
-    // Movement
-    if (!this.dashing) {
-      if (keys["ArrowLeft"]) { this.vx = -3; if (!this.lockFacing) this.facing = -1; }
-      else if (keys["ArrowRight"]) { this.vx = 3; if (!this.lockFacing) this.facing = 1; }
-      else this.vx = 0;
-
-      if (keys[" "] && this.onGround) { // jump
-        this.vy = -10;
-        this.onGround = false;
-        this.state = "jump";
-      }
-
-      if (keys["z"]) this.state = "attack";
-
-      if (keys["x"] && !this.onGround && this.canDash) { // dash
-        this.state = "dash";
-        this.dashing = true;
-        this.dashTime = 15;
-        this.vx = this.facing * 12;
-        this.vy = 0;
-        this.canDash = false;
-        this.lockFacing = true;
-      }
+    if (keys[" "] && this.onGround) {
+      this.vy = -10;
+      this.onGround = false;
+      this.state = "jump";
     }
 
-    // Dash end
-    if (this.dashing) {
-      this.dashTime--;
-      if (this.dashTime <= 0) {
-        this.dashing = false;
-        this.lockFacing = false;
-      }
-    }
+    if (keys["z"]) this.state = "attack";
 
-    // Apply velocity
-    this.x += this.vx;
-    this.y += this.vy;
-
-    // Simple floor collision
-    if (this.y + this.height >= canvas.height - 50) {
-      this.y = canvas.height - 50 - this.height;
+    if (keys["x"] && !this.onGround && this.canDash) {
+      this.state = "dash";
+      this.dashing = true;
+      this.dashTime = 15;
+      this.vx = this.facing * 12;
       this.vy = 0;
-      this.onGround = true;
-      this.canDash = true;
-      if (!keys["z"] && !this.dashing) this.state = "idle";
+      this.canDash = false;
+      this.lockFacing = true;
     }
   }
 
-  draw(ctx) {
-    this.frameTimer++;
-    if (this.frameTimer > 10) {
-      this.frameTimer = 0;
-      this.frame++;
+  // Dash end
+  if (this.dashing) {
+    this.dashTime--;
+    if (this.dashTime <= 0) {
+      this.dashing = false;
+      this.lockFacing = false;
     }
+  }
 
-    let spr = sprites[this.state] || sprites.idle;
-    let frameIndex = this.frame % spr.frames;
+  // Apply velocity
+  this.x += this.vx;
+  this.y += this.vy;
 
-    let fw = spr.img.width / spr.w;
-    let fh = spr.img.height / spr.h;
-    let sx = (frameIndex % spr.w) * fw;
-    let sy = Math.floor(frameIndex / spr.w) * fh;
+  // --- Block collisions ---
+  this.onGround = false;
+  blocks.forEach(b => {
+    // AABB collision
+    if (this.x < b.x + b.size &&
+        this.x + this.width > b.x &&
+        this.y < b.y + b.size &&
+        this.y + this.height > b.y) {
+      
+      // From top
+      if (this.vy > 0 && this.y + this.height - this.vy <= b.y) {
+        this.y = b.y - this.height;
+        this.vy = 0;
+        this.onGround = true;
+        this.canDash = true;
+        if (!keys["z"] && !this.dashing) this.state = "idle";
+      }
+      // (You can expand later for hitting sides/ceiling if needed)
+    }
+  });
 
-    ctx.save();
-    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-    ctx.scale(this.facing, 1);
-    ctx.drawImage(
-      spr.img,
-      sx, sy, fw, fh,
-      -this.width / 2, -this.height / 2,
-      this.width, this.height
-    );
-    ctx.restore();
+  // Fallback ground check
+  if (this.y + this.height >= canvas.height) {
+    this.y = canvas.height - this.height;
+    this.vy = 0;
+    this.onGround = true;
+    this.canDash = true;
+    if (!keys["z"] && !this.dashing) this.state = "idle";
   }
 }
-
-let playerInstance = null;
-
-// Expose this function to level1.html
-window.playerUpdate = function(ctx, blocks, canvas, spawnPoint) {
-  if (!playerInstance) {
-    playerInstance = new Player(spawnPoint.x, spawnPoint.y);
-  }
-  playerInstance.update(blocks, canvas);
-  playerInstance.draw(ctx);
-};

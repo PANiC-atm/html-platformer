@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: black;
+      border: 2px solid white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    #title {
+      margin-top: 40px;
+      width: 600px;
+      height: 64px;
+      object-fit: contain;
+    }
+    #playBtn {
+      margin-top: 150px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <img id="title" src="buttons/Title.png" alt="Game Title">
+
+  <img id="playBtn" src="buttons/PlayNormal.png" alt="Play Button">
+
+  <script>
+    const playBtn = document.getElementById("playBtn");
+
+    playBtn.addEventListener("mouseover", () => {
+      playBtn.src = "buttons/PlayHover.png";
+    });
+
+    playBtn.addEventListener("mouseout", () => {
+      playBtn.src = "buttons/PlayNormal.png";
+    });
+
+    playBtn.addEventListener("click", () => {
+      // Call parent function in index.html to load level1.html
+      window.parent.loadLevel();
+    });
+  </script>
+</body>
+</html>

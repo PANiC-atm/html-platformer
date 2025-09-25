@@ -4,84 +4,73 @@
   <meta charset="UTF-8">
   <title>Level 1</title>
   <style>
-    body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    canvas { border: 1px solid white; }
+    body { margin:0; background:black; display:flex; justify-content:center; align-items:center; height:100vh; }
+    canvas { border:1px solid white; background:black; }
   </style>
 </head>
 <body>
-<canvas id="game" width="512" height="384"></canvas>
+  <canvas id="gameCanvas" width="512" height="384"></canvas>
+  <script src="player.js"></script>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-<!-- Load player script -->
-<script src="player.js"></script>
+    const BLOCK_SIZE = 64;
 
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+    const bg = new Image();
+    bg.src = "images/levelBG.png";
 
-// Background
-const bg = new Image();
-bg.src = "images/levelBG.png";
+    const blockImg = new Image();
+    blockImg.src = "images/levelblock.png";
 
-// Block settings
-const blockImg = new Image();
-blockImg.src = "images/levelblock.png";
-const BLOCK_SIZE = 64; // match your art’s native size
+    const levelMap = [
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "........................................##......................................",
+    "....................................##..##......................................",
+    "................................##..##..##......................................",
+    "#########...##################..##..##..##.....############......................",
+    "#########...##################..##..##..##.....############......................",
+  ];
 
-// Level layout (# = block, . = empty)
-const levelMap = [
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "................................................................................",
-  "........................................##......................................",
-  "....................................##..##......................................",
-  "................................##..##..##......................................",
-  "#########...##################..##..##..##.....############......................",
-  "#########...##################..##..##..##.....############......................",
-];
-
-// Convert to block objects
-let blocks = [];
-for (let row = 0; row < levelMap.length; row++) {
-  for (let col = 0; col < levelMap[row].length; col++) {
-    if (levelMap[row][col] === "#") {
-      blocks.push({
-        x: col * BLOCK_SIZE,
-        y: row * BLOCK_SIZE,
-        size: BLOCK_SIZE
-      });
+    // store blocks
+    let blocks = [];
+    for (let row = 0; row < levelMap.length; row++) {
+      for (let col = 0; col < levelMap[row].length; col++) {
+        if (levelMap[row][col] === "#") {
+          blocks.push({
+            x: col * BLOCK_SIZE,
+            y: row * BLOCK_SIZE,
+            size: BLOCK_SIZE
+          });
+        }
+      }
     }
-  }
-}
 
+    function gameLoop() {
+      // background
+      ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
-// Player spawn point
-const spawnPoint = { x: 64, y: 200 };
+      // draw blocks
+      blocks.forEach(b => {
+        ctx.drawImage(blockImg, b.x, b.y, b.size, b.size);
+      });
 
-// Loop
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // player
+      if (window.playerUpdate) {
+        window.playerUpdate(ctx, canvas, blocks);
+      }
 
-  // Draw background stretched
-  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+      requestAnimationFrame(gameLoop);
+    }
 
-  // Draw blocks
-  blocks.forEach(b => {
-    ctx.drawImage(blockImg, b.x, b.y, BLOCK_SIZE, BLOCK_SIZE);
-  });
-
-  // Player
-  if (window.playerUpdate) {
-    window.playerUpdate(ctx, blocks, canvas, spawnPoint);
-  }
-
-  requestAnimationFrame(loop);
-}
-loop();
-</script>
+    bg.onload = () => { gameLoop(); };
+  </script>
 </body>
 </html>

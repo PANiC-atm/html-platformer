@@ -8,12 +8,15 @@
       margin: 0;
       overflow: hidden;
       background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     canvas {
-      display: block;
-      margin: 0 auto;
       background: black;
       border: 2px solid white;
+      display: block;
     }
   </style>
 </head>
@@ -25,8 +28,8 @@
     const ctx = canvas.getContext("2d");
 
     function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas.width = Math.floor(window.innerWidth / 2);
+      canvas.height = Math.floor(window.innerHeight / 2);
     }
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
@@ -76,6 +79,9 @@
 
     createLevel();
 
+    // Spawn position (left side, just above the ground)
+    const spawnPoint = { x: tileSize * 2, y: canvas.height - tileSize * 3 };
+
     function drawLevel() {
       ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
       for (let b of blocks) {
@@ -87,9 +93,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawLevel();
 
-      // Player draw/update comes from player.html
+      // Update + draw player (loaded from player.html)
       if (window.playerUpdate) {
-        window.playerUpdate(ctx, blocks, canvas);
+        window.playerUpdate(ctx, blocks, canvas, spawnPoint);
       }
 
       requestAnimationFrame(gameLoop);
@@ -101,7 +107,6 @@
     fetch("player.html")
       .then(res => res.text())
       .then(html => {
-        // Extract script content from player.html
         const match = html.match(/<script>([\s\S]*?)<\/script>/);
         if (match) {
           const script = document.createElement("script");

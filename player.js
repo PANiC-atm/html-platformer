@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Player Module</title>
-</head>
-<body>
-<script>
 // === Player Module ===
 
-// Player sprite sheets
+// Sprite sheets
 const sprites = {
   idle: { src: "images/HTMLPlayer.png", frames: 4, w: 2, h: 2 },
   jump: { src: "images/HTMLPlayerJump.png", frames: 2, w: 1, h: 2 },
@@ -16,12 +8,14 @@ const sprites = {
   dash: { src: "images/HTMLPlayerDash.png", frames: 4, w: 2, h: 2 }
 };
 
+// Load sprite images
 for (let key in sprites) {
   const img = new Image();
   img.src = sprites[key].src;
   sprites[key].img = img;
 }
 
+// Input
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
@@ -32,7 +26,7 @@ class Player {
     this.y = spawnY;
     this.vx = 0;
     this.vy = 0;
-    this.width = 64;
+    this.width = 64;   // keep at your sprite’s natural size
     this.height = 64;
     this.onGround = false;
     this.facing = 1;
@@ -46,15 +40,15 @@ class Player {
   }
 
   update(blocks, canvas) {
-    if (!this.dashing) this.vy += 0.5;
+    if (!this.dashing) this.vy += 0.5; // gravity
 
-    // Controls
+    // Movement
     if (!this.dashing) {
       if (keys["ArrowLeft"]) { this.vx = -3; if (!this.lockFacing) this.facing = -1; }
       else if (keys["ArrowRight"]) { this.vx = 3; if (!this.lockFacing) this.facing = 1; }
       else this.vx = 0;
 
-      if (keys[" "] && this.onGround) {
+      if (keys[" "] && this.onGround) { // jump
         this.vy = -10;
         this.onGround = false;
         this.state = "jump";
@@ -62,7 +56,7 @@ class Player {
 
       if (keys["z"]) this.state = "attack";
 
-      if (keys["x"] && !this.onGround && this.canDash) {
+      if (keys["x"] && !this.onGround && this.canDash) { // dash
         this.state = "dash";
         this.dashing = true;
         this.dashTime = 15;
@@ -73,7 +67,7 @@ class Player {
       }
     }
 
-    // Dash duration
+    // Dash end
     if (this.dashing) {
       this.dashTime--;
       if (this.dashTime <= 0) {
@@ -82,11 +76,11 @@ class Player {
       }
     }
 
-    // Apply movement
+    // Apply velocity
     this.x += this.vx;
     this.y += this.vy;
 
-    // Floor collision (basic)
+    // Simple floor collision
     if (this.y + this.height >= canvas.height - 50) {
       this.y = canvas.height - 50 - this.height;
       this.vy = 0;
@@ -114,15 +108,19 @@ class Player {
     ctx.save();
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
     ctx.scale(this.facing, 1);
-    ctx.drawImage(spr.img, sx, sy, fw, fh,
-                  -this.width/2, -this.height/2,
-                  this.width, this.height);
+    ctx.drawImage(
+      spr.img,
+      sx, sy, fw, fh,
+      -this.width / 2, -this.height / 2,
+      this.width, this.height
+    );
     ctx.restore();
   }
 }
 
-// Export hook for level files
 let playerInstance = null;
+
+// Expose this function to level1.html
 window.playerUpdate = function(ctx, blocks, canvas, spawnPoint) {
   if (!playerInstance) {
     playerInstance = new Player(spawnPoint.x, spawnPoint.y);
@@ -130,6 +128,3 @@ window.playerUpdate = function(ctx, blocks, canvas, spawnPoint) {
   playerInstance.update(blocks, canvas);
   playerInstance.draw(ctx);
 };
-</script>
-</body>
-</html>

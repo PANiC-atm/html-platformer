@@ -57,17 +57,19 @@
 
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // background
-      ctx.drawImage(bg, -camera.x, -camera.y, canvas.width, canvas.height);
-
-      // draw blocks with camera offset
+    
+      // test background color
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+      // draw blocks as green squares (ignore images for now)
+      ctx.fillStyle = "lime";
       blocks.forEach(b => {
-        ctx.drawImage(blockImg, b.x - camera.x, b.y - camera.y, b.size, b.size);
+        ctx.fillRect(b.x - camera.x, b.y - camera.y, b.size, b.size);
       });
 
-      requestAnimationFrame(gameLoop);
-    }
+  requestAnimationFrame(gameLoop);
+}
 
     // --- Placeholder: function to spawn player later ---
     function spawnPlayer(x, y) {

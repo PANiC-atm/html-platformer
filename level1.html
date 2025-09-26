@@ -10,7 +10,6 @@
 </head>
 <body>
   <canvas id="gameCanvas" width="512" height="384"></canvas>
-  <script src="player.js"></script>
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -53,18 +52,11 @@
       }
     }
 
-    // --- Camera ---
+    // --- Camera setup (player will move this later) ---
     let camera = { x: 0, y: 0 };
 
     function gameLoop() {
-      // Clear screen
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Update camera (follow player)
-      if (window.player) {
-        camera.x = window.player.x - canvas.width / 2 + window.player.width / 2;
-        if (camera.x < 0) camera.x = 0; // prevent scrolling past left edge
-      }
 
       // background
       ctx.drawImage(bg, -camera.x, -camera.y, canvas.width, canvas.height);
@@ -74,13 +66,16 @@
         ctx.drawImage(blockImg, b.x - camera.x, b.y - camera.y, b.size, b.size);
       });
 
-      // player
-      if (window.playerUpdate) {
-        window.playerUpdate(ctx, canvas, blocks, camera);
-      }
-
       requestAnimationFrame(gameLoop);
     }
+
+    // --- Placeholder: function to spawn player later ---
+    function spawnPlayer(x, y) {
+      console.log("Spawn player at", x, y);
+      // we’ll implement drawing in player.js later
+    }
+
+    window.spawnPlayer = spawnPlayer;
 
     bg.onload = () => { gameLoop(); };
   </script>
